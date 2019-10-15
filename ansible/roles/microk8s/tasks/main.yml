@@ -1,0 +1,22 @@
+---
+# tasks file for microk8s
+# Reference: https://tutorials.ubuntu.com/tutorial/install-a-local-kubernetes-with-microk8s#0
+- name: Install microk8s
+  become: yes
+  command: snap install microk8s --classic --channel=1.15/stable
+
+- name: Enable addons
+  become: yes
+  command: microk8s.enable dashboard dns --wait-ready
+  ignore_errors: yes
+
+- name: Enable NodePort
+  command: microk8s.kubectl expose -n kube-system deployment.apps/kubernetes-dashboard --type NodePort --name ds-np
+
+- name: Capture NodePorts
+  command: microk8s.kubectl get all -A | grep NodePort
+  register: stdout_nodeports
+
+- name: Display NodePorts
+  debug:
+    var: stdout_nodeports
